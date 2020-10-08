@@ -7,7 +7,7 @@ describe('DependencyTask', () => {
     it('should call the children task', async (done) => {
         let called = false;
         const task = new DependencyTask([
-            new DependencyNode(new Task(null, (async () => {
+            new DependencyNode('', new Task(null, (async () => {
                 called = true;
             }))),
         ]);
@@ -18,11 +18,11 @@ describe('DependencyTask', () => {
     it('should respect dependencies', async (done) => {
         let callTime1 = 0;
         let callTime2 = 0;
-        const node1 = new DependencyNode(new Task(null, (async () => {
+        const node1 = new DependencyNode('', new Task(null, (async () => {
             callTime1 = Date.now();
             await delay(100);
         })));
-        const node2 = new DependencyNode(new Task(null, (async () => {
+        const node2 = new DependencyNode('', new Task(null, (async () => {
             callTime2 = Date.now();
         })));
         node2.addEdge(node1);

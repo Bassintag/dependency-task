@@ -1,78 +1,117 @@
-import {Observable} from 'rxjs';
-
 export interface IRunnable<T = any> {
-
-    run(): Promise<T>;
+	run(): Promise<T>;
 }
 
 export interface IDisposable {
-
-    dispose(): void;
+	dispose(): void;
 }
 
-export interface ITask extends IDisposable, IRunnable {
+export interface IPausable {
+	pause(): void;
+}
 
-    readonly complete: Observable<void>;
+export interface ITask extends IRunnable {
+	readonly running: boolean;
+
+	readonly complete: boolean;
+
+	invalidate(): void;
+}
+
+export interface IDependencyTask extends ITask, IPausable {
+	invalidateById(id: string): void;
 }
 
 export interface IDependencyNode<T> {
+	readonly id: string;
 
-    readonly value: T;
+	readonly value: T;
 
-    addEdge(node: IDependencyNode<T>): void;
+	addEdge(node: IDependencyNode<T>): void;
 
-    getEdges(): IDependencyNode<T>[];
+	getEdges(): IDependencyNode<T>[];
 }
 
-export type ITaskCallable<ContextT = any> = (context: ContextT) => Promise<void>;
+export type ITaskCallable<ContextT = any> = (
+	context: ContextT
+) => Promise<void>;
 
 export type IDependencyIds = string | string[];
 
 export type IRetryOption = true | number;
 
 export interface IBuildDependencyTaskStepOptions<ContextT> {
+	readonly id: string;
 
-    readonly id: string;
+	readonly run: ITaskCallable<ContextT>;
 
-    readonly run: ITaskCallable<ContextT>;
+	readonly dependsOn?: IDependencyIds;
 
-    readonly dependsOn: IDependencyIds;
+	readonly optional?: boolean;
 
-    readonly optional?: boolean;
+	readonly retry?: IRetryOption;
 
-    readonly retry?: IRetryOption;
+	readonly retryDelay?: number;
 
-    readonly retryDelay?: number;
+	readonly onError?: (error: any) => any;
+
+	readonly meta?: any;
+
+	readonly isCanceled?: (
+		step: IBuildDependencyTaskStepOptions<ContextT>
+	) => boolean;
+
+	readonly skip?: (step: IBuildDependencyTaskStepOptions<ContextT>) => boolean;
+
+	readonly beforeStep?: (
+		step: IBuildDependencyTaskStepOptions<ContextT>
+	) => any;
+
+	readonly afterStep?: (step: IBuildDependencyTaskStepOptions<ContextT>) => any;
 }
 
 export interface IBuildDependencyStep<ContextT> {
-    options: IBuildDependencyTaskStepOptions<ContextT>;
-    node: IDependencyNode<ITask>;
+	options: IBuildDependencyTaskStepOptions<ContextT>;
+
+	node: IDependencyNode<ITask>;
 }
 
 export interface IBuildDependencyTaskOptions<ContextT> {
+	context: ContextT;
 
-    context: ContextT;
+	steps: IBuildDependencyTaskStepOptions<ContextT>[];
 
-    steps: IBuildDependencyTaskStepOptions<ContextT>[];
-
-    beforeStep?: (step: IBuildDependencyTaskStepOptions<ContextT>) => any;
-
-    afterStep?: (step: IBuildDependencyTaskStepOptions<ContextT>) => any;
+	defaults?: Partial<IBuildDependencyTaskStepOptions<ContextT>>;
 }
 
-export interface IRetryOptions {
+export interface IRetryOptions<T> {
+	maxRetries?: number;
 
-    maxRetries?: number;
+	retryDelay?: number;
 
-    retryDelay?: number;
+	cancelOptions?: ICancelableOptions<T>;
+}
+
+export interface ICancelableOptions<T> {
+	isCanceled: (payload: T) => boolean;
+
+	payload: T;
+}
+
+export interface ISkippableOptions<T> {
+	skip: (payload: T) => boolean;
+
+	payload: T;
+}
+
+export interface IOnErrorOptions {
+	onError: (error: any) => any;
 }
 
 export interface IWrapOptions<T> {
+	before?: (param: T) => any;
 
-    before?: (param: T) => any;
+	after?: (param: T) => any;
 
-    after?: (param: T) => any;
-
-    param: T;
+	param: T;
 }

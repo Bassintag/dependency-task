@@ -1,31 +1,44 @@
-import {ITask, ITaskCallable} from './types';
-import {Observable, ReplaySubject, Subject, Subscribable} from 'rxjs';
+import {IRetryOption, ITask, ITaskCallable} from './types';
 
 export class Task<ContextT> implements ITask {
 
-    private readonly _subject: Subject<void>;
     private readonly _context: ContextT;
     private readonly _runner: ITaskCallable<ContextT>;
 
-    get complete(): Observable<void> {
-        return this._subject.asObservable();
+    private _complete: boolean;
+    private _runningPromise?: Promise<any>;
+
+    get complete(): boolean {
+        return this._complete;
+    }
+
+    get running(): boolean {
+        return this._runningPromise != null;
     }
 
     constructor(
         context: ContextT,
         runner: ITaskCallable<ContextT>,
     ) {
-        this._subject = new ReplaySubject();
+        this._complete = false;
+        this._runningPromise = undefined;
         this._context = context;
         this._runner = runner;
     }
 
     async run(): Promise<void> {
-        await this._runner(this._context);
-        this._subject.next();
+        if (!this._complete) {
+            if (!this.running) {
+                this._runningPromise = this._runner(this._context).then(() => {
+                    this._runningPromise = undefined;
+                    this._complete = true;
+                });
+            }
+            await this._runningPromise;
+        }
     }
 
-    dispose(): void {
-        this._subject.complete();
+    public invalidate() {
+        this._complete = false;
     }
 }

@@ -5,6 +5,7 @@ export class DependencyNode<T> implements IDependencyNode<T> {
     private readonly _edges: IDependencyNode<T>[];
 
     constructor(
+        readonly id: string,
         readonly value: T,
     ) {
         this._edges = [];

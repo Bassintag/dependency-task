@@ -11,25 +11,10 @@ describe('Task', () => {
         task = new Task(undefined, sampleRunner);
     });
 
-    afterAll(() => {
-        task.dispose();
-    });
-
-    it('should have a complete which is subscribable', () => {
-        task.complete.subscribe().unsubscribe();
-    });
-
-    it('should be disposable', () => {
-        const task = new Task(undefined, sampleRunner);
-        expect(task['_subject'].isStopped).toBeFalsy();
-        task.dispose();
-        expect(task['_subject'].isStopped).toBeTruthy();
-    });
-
-    it('should call the observable', (done) => {
-        task.complete.subscribe(() => {
-            done();
-        });
-        task.run();
+    it('should be completed after running', async (done) => {
+        expect(task.complete).toBeFalsy();
+        await task.run();
+        expect(task.complete).toBeTruthy();
+        done();
     });
 });

@@ -1,9 +1,7 @@
 import {ITaskCallable} from '../../types';
-import {optional} from '../optional';
 import {retry} from '../retry';
-import {expand} from 'rxjs/operators';
 
-describe('optional', () => {
+describe('retry', () => {
     it('should let the callable resolve', async (done) => {
         const callable: ITaskCallable = async () => {
         };
