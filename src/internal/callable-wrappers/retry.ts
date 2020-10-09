@@ -1,6 +1,7 @@
 import {IRetryOptions, ITaskCallable} from '../types';
 import {delay} from '../utils/delay';
 import {CanceledError} from "./cancelable";
+import {isRefreshDependencyError} from "../errors/RefreshDependencyError";
 
 export function retry<T, RetryT>(
 	callable: ITaskCallable<T>,
@@ -23,6 +24,9 @@ export function retry<T, RetryT>(
 				await callable(context);
 				success = true;
 			} catch (e) {
+				if (isRefreshDependencyError(e)) {
+					throw e;
+				}
 				if (maxRetries > 0 && tries > maxRetries) {
 					throw e;
 				}

@@ -64,7 +64,7 @@ export function buildDependencyTask<ContextT = undefined>(
 			param: s,
 		});
 		if (s.skip) {
-			skippable(runnable, {
+			runnable = skippable(runnable, {
 				skip: s.skip,
 				payload: s,
 			});
