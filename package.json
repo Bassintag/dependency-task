@@ -1,6 +1,6 @@
 {
   "name": "dependency-task",
-  "version": "0.1.8",
+  "version": "0.1.10",
   "description": "",
   "main": "lib/index.js",
   "scripts": {

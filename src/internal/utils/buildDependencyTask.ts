@@ -45,19 +45,20 @@ export function buildDependencyTask<ContextT = undefined>(
 			runnable = onError(runnable, {
 				onError: s.onError,
 			});
-		}
-		if (s.optional) {
-			runnable = optional(runnable);
-		} else if (s.retry != null) {
+		}if (s.retry != null) {
 			const maxRetries = s.retry === true ? 0 : s.retry;
 			runnable = retry(runnable, {
 				maxRetries,
 				retryDelay: s.retryDelay,
 				cancelOptions,
 			});
-		}
-		if (cancelOptions != null) {
-			runnable = cancelable(runnable, cancelOptions);
+		} else {
+			if (s.optional) {
+				runnable = optional(runnable);
+			}
+			if (cancelOptions != null) {
+				runnable = cancelable(runnable, cancelOptions);
+			}
 		}
 		runnable = wrap(runnable, {
 			after: s.afterStep,
