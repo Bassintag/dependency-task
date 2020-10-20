@@ -25,6 +25,7 @@ export function retry<T, RetryT>(
 				success = true;
 			} catch (e) {
 				if (isRefreshDependencyError(e)) {
+					await delay(retryDelay);
 					throw e;
 				}
 				if (maxRetries > 0 && tries > maxRetries) {
