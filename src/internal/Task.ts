@@ -32,9 +32,10 @@ export class Task<ContextT> implements ITask {
 				this._runningPromise = this._runner(this._context).then(() => {
 					this._runningPromise = undefined;
 					this._complete = true;
-				}).catch(() => {
+				}).catch((e) => {
 					this._runningPromise = undefined;
 					this._complete = false;
+					throw e;
 				});
 			}
 			await this._runningPromise;

@@ -1,8 +1,7 @@
-import {IDependencyNode, IDependencyTask, ITask} from './types';
+import {IDependencyNode, IDependencyTask, ITask} from "./types";
 import {isRefreshDependencyError} from "./errors/RefreshDependencyError";
 
 export class DependencyTask implements IDependencyTask {
-
 	private refreshes: Promise<any>[];
 
 	get complete(): boolean {
@@ -15,9 +14,7 @@ export class DependencyTask implements IDependencyTask {
 
 	private paused: boolean;
 
-	constructor(
-		private readonly _nodes: IDependencyNode<ITask>[],
-	) {
+	constructor(private readonly _nodes: IDependencyNode<ITask>[]) {
 		this.paused = false;
 		this.refreshes = [];
 	}
@@ -28,13 +25,14 @@ export class DependencyTask implements IDependencyTask {
 			for (const node of this._nodes) {
 				if (!node.value.complete && !node.value.running) {
 					if (node.getEdges().find((n) => !n.value.complete) == null) {
-						promises.push(node.value.run()
-							.catch((e) => {
+						promises.push(
+							node.value.run().catch((e) => {
 								if (!isRefreshDependencyError(e)) {
 									throw e;
 								}
 								return null;
-							}).then(() => this.refresh()));
+							}).then(() => this.refresh())
+						);
 					}
 				}
 			}
@@ -64,5 +62,4 @@ export class DependencyTask implements IDependencyTask {
 			node.value.invalidate();
 		}
 	}
-
 }
