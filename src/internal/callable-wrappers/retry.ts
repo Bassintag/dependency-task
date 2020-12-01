@@ -1,12 +1,9 @@
-import {IRetryOptions, ITaskCallable} from '../types';
-import {delay} from '../utils/delay';
-import {CanceledError} from "./cancelable";
-import {isRefreshDependencyError} from "../errors/RefreshDependencyError";
+import { IRetryOptions, ITaskCallable } from '../types';
+import { delay } from '../utils/delay';
+import { CanceledError } from './cancelable';
+import { isRefreshDependencyError } from '../errors/RefreshDependencyError';
 
-export function retry<T, RetryT>(
-	callable: ITaskCallable<T>,
-	options: IRetryOptions<RetryT> = {},
-): ITaskCallable<T> {
+export function retry<T, RetryT>(callable: ITaskCallable<T>, options: IRetryOptions<RetryT> = {}): ITaskCallable<T> {
 	const maxRetries = options.maxRetries || 0;
 	const retryDelay = options.retryDelay || 0;
 	return async (context: T) => {
@@ -24,15 +21,21 @@ export function retry<T, RetryT>(
 				await callable(context);
 				success = true;
 			} catch (e) {
+				let delayAmount: number;
+				if (typeof retryDelay === 'number') {
+					delayAmount = retryDelay;
+				} else {
+					delayAmount = retryDelay();
+				}
 				if (isRefreshDependencyError(e)) {
-					await delay(retryDelay);
+					await delay(delayAmount);
 					throw e;
 				}
 				if (maxRetries > 0 && tries > maxRetries) {
 					throw e;
 				}
-				if (retryDelay > 0) {
-					await delay(retryDelay);
+				if (delayAmount > 0) {
+					await delay(delayAmount);
 				}
 			}
 		}

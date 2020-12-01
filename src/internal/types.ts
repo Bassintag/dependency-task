@@ -19,7 +19,7 @@ export interface ITask extends IRunnable {
 }
 
 export interface IDependencyTask extends ITask, IPausable {
-	invalidateById(id: string): void;
+	invalidateById(id: string, recursive?: boolean): void;
 }
 
 export interface IDependencyNode<T> {
@@ -32,9 +32,7 @@ export interface IDependencyNode<T> {
 	getEdges(): IDependencyNode<T>[];
 }
 
-export type ITaskCallable<ContextT = any> = (
-	context: ContextT
-) => Promise<void>;
+export type ITaskCallable<ContextT = any> = (context: ContextT) => Promise<void>;
 
 export type IDependencyIds = string | string[];
 
@@ -51,21 +49,17 @@ export interface IBuildDependencyTaskStepOptions<ContextT> {
 
 	readonly retry?: IRetryOption;
 
-	readonly retryDelay?: number;
+	readonly retryDelay?: number | (() => number);
 
 	readonly onError?: (error: any) => any;
 
 	readonly meta?: any;
 
-	readonly isCanceled?: (
-		step: IBuildDependencyTaskStepOptions<ContextT>
-	) => boolean;
+	readonly isCanceled?: (step: IBuildDependencyTaskStepOptions<ContextT>) => boolean;
 
 	readonly skip?: (step: IBuildDependencyTaskStepOptions<ContextT>) => boolean;
 
-	readonly beforeStep?: (
-		step: IBuildDependencyTaskStepOptions<ContextT>
-	) => any;
+	readonly beforeStep?: (step: IBuildDependencyTaskStepOptions<ContextT>) => any;
 
 	readonly afterStep?: (step: IBuildDependencyTaskStepOptions<ContextT>) => any;
 }
@@ -87,7 +81,7 @@ export interface IBuildDependencyTaskOptions<ContextT> {
 export interface IRetryOptions<T> {
 	maxRetries?: number;
 
-	retryDelay?: number;
+	retryDelay?: number | (() => number);
 
 	cancelOptions?: ICancelableOptions<T>;
 }

@@ -1,5 +1,5 @@
-import {IDependencyNode, IDependencyTask, ITask} from "./types";
-import {isRefreshDependencyError} from "./errors/RefreshDependencyError";
+import { IDependencyNode, IDependencyTask, ITask } from './types';
+import { isRefreshDependencyError, RefreshDependencyError } from './errors/RefreshDependencyError';
 
 export class DependencyTask implements IDependencyTask {
 	private refreshes: Promise<any>[];
@@ -26,12 +26,21 @@ export class DependencyTask implements IDependencyTask {
 				if (!node.value.complete && !node.value.running) {
 					if (node.getEdges().find((n) => !n.value.complete) == null) {
 						promises.push(
-							node.value.run().catch((e) => {
-								if (!isRefreshDependencyError(e)) {
-									throw e;
-								}
-								return null;
-							}).then(() => this.refresh())
+							node.value
+								.run()
+								.catch((e) => {
+									if (!isRefreshDependencyError(e)) {
+										throw e;
+									} else {
+										const re = e as RefreshDependencyError;
+										const id = re.invalidateId;
+										if (id) {
+											this.invalidateById(id, re.recursive);
+										}
+									}
+									return null;
+								})
+								.then(() => this.refresh())
 						);
 					}
 				}
@@ -56,10 +65,17 @@ export class DependencyTask implements IDependencyTask {
 		}
 	}
 
-	public invalidateById(id: string) {
+	public invalidateById(id: string, recursive: boolean = true) {
 		const node = this._nodes.find((n) => n.id === id);
 		if (node) {
 			node.value.invalidate();
+			if (recursive) {
+				for (const child of this._nodes) {
+					if (child.value.complete && child.getEdges().includes(node)) {
+						this.invalidateById(child.id, recursive);
+					}
+				}
+			}
 		}
 	}
 }
